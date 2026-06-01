@@ -69,18 +69,30 @@ jobs:
             --scope "$SA_ID" \
             2>/dev/null || true
 
-          if ! az consumption budget show --budget-name newsletter-budget --resource-group "$AZURE_RESOURCE_GROUP" &>/dev/null; then
-            az consumption budget create \
-              --budget-name newsletter-budget \
-              --amount 5 \
-              --category Cost \
-              --time-grain Monthly \
-              --start-date "$(date +%Y-%m-01)" \
-              --end-date "2030-12-31" \
-              --resource-group "$AZURE_RESOURCE_GROUP" \
-              --threshold 100 \
-              --contact-emails "joaolfelicio@gmail.com"
-          fi
+          SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+          az rest \
+            --method PUT \
+            --url "https://management.azure.com/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${AZURE_RESOURCE_GROUP}/providers/Microsoft.Consumption/budgets/newsletter-budget?api-version=2021-10-01" \
+            --body '{
+              "properties": {
+                "category": "Cost",
+                "amount": 5,
+                "timeGrain": "Monthly",
+                "timePeriod": {
+                  "startDate": "2026-06-01",
+                  "endDate": "2030-12-31"
+                },
+                "notifications": {
+                  "actual_GreaterThan_100_Percent": {
+                    "enabled": true,
+                    "operator": "GreaterThan",
+                    "threshold": 100,
+                    "contactEmails": ["joaolfelicio@gmail.com"],
+                    "thresholdType": "Actual"
+                  }
+                }
+              }
+            }'
 
       - name: Set function app settings
         run: |
