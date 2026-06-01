@@ -2,7 +2,7 @@ import hashlib
 import os
 import re
 
-from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
+from azure.core.exceptions import ResourceNotFoundError
 from azure.data.tables import TableServiceClient
 from azure.identity import DefaultAzureCredential
 
@@ -24,10 +24,6 @@ class AzureTablesStorage:
         endpoint = os.environ["AZURE_TABLES_ENDPOINT"]
         credential = DefaultAzureCredential()
         service = TableServiceClient(endpoint=endpoint, credential=credential)
-        try:
-            service.create_table(_TABLE_NAME)
-        except ResourceExistsError:
-            pass
         self._client = service.get_table_client(_TABLE_NAME)
 
     def is_new(self, article: Article) -> bool:

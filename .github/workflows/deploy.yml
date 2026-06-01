@@ -69,6 +69,11 @@ jobs:
             --scope "$SA_ID" \
             2>/dev/null || true
 
+          az storage table create \
+            --name SeenArticles \
+            --account-name "$AZURE_STORAGE_ACCOUNT_NAME" \
+            --auth-mode login 2>/dev/null || true
+
           SUBSCRIPTION_ID=$(az account show --query id -o tsv)
           az rest \
             --method PUT \
