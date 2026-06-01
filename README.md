@@ -19,10 +19,11 @@ For sites without RSS, subclass `BaseFeedChecker` in `src/checkers/` and impleme
 
 ### 1. Telegram bot
 
-1. Open Telegram and message `@BotFather`
-2. Send `/newbot` and follow the prompts — note the **bot token**
-3. Start a conversation with your new bot (or add it to a group)
-4. Get your **chat ID**:
+Bot username: `@jfnewsltterwebscrapperbot`
+
+1. Get the **bot token**: message `@BotFather` → `/mybot` → select the bot → API Token
+2. Start a conversation with `@jfnewsltterwebscrapperbot` (or add it to a group)
+3. Get your **chat ID**:
    - Visit `https://api.telegram.org/bot<TOKEN>/getUpdates` in a browser
    - Send a message to the bot first, then refresh — look for `"chat":{"id":...}`
 
