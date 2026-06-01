@@ -26,26 +26,17 @@ For sites without RSS, subclass `BaseFeedChecker` in `src/checkers/` and impleme
    - Visit `https://api.telegram.org/bot<TOKEN>/getUpdates` in a browser
    - Send a message to the bot first, then refresh — look for `"chat":{"id":...}`
 
-### 2. GitHub secrets and variables
+### 2. GitHub secrets
 
-Go to your repo → **Settings → Secrets and variables → Actions**.
+Go to your repo → **Settings → Secrets and variables → Actions → Secrets**.
 
-**Secrets:**
 | Name | Value |
 |------|-------|
-| `AZURE_CREDENTIALS` | Output of `az ad sp create-for-rbac --name newsletter-deploy --role contributor --scopes /subscriptions/<sub-id>/resourceGroups/<rg> --sdk-auth` |
-| `AZURE_FUNCTIONAPP_NAME` | Your function app name (must be globally unique) |
-| `AZURE_RESOURCE_GROUP` | Your resource group name |
+| `AZURE_CREDENTIALS` | Output of `az ad sp create-for-rbac --name newsletter-deploy --role contributor --scopes /subscriptions/<sub-id>/resourceGroups/rg-newsletter-scrapper --sdk-auth` |
 | `TELEGRAM_BOT_TOKEN` | From BotFather |
 | `TELEGRAM_CHAT_ID` | Your chat/group ID |
 
-**Variables:**
-| Name | Value |
-|------|-------|
-| `AZURE_STORAGE_ACCOUNT_NAME` | Storage account name (globally unique, lowercase, 3-24 chars) |
-| `AZURE_LOCATION` | Azure region, e.g. `westeurope` |
-
-Azure resources are provisioned automatically on first deploy — no manual `az` commands needed.
+All Azure resource names and location are hardcoded in `.github/workflows/deploy.yml`. Azure resources are provisioned automatically on first deploy — no manual `az` commands needed.
 
 ### 3. Deploy
 

@@ -5,6 +5,12 @@ on:
     branches: [main]
   workflow_dispatch:
 
+env:
+  AZURE_RESOURCE_GROUP: rg-newsletter-scrapper
+  AZURE_STORAGE_ACCOUNT_NAME: newsletterscrapper
+  AZURE_FUNCTIONAPP_NAME: newsletter-web-scrapper
+  AZURE_LOCATION: westeurope
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -25,36 +31,31 @@ jobs:
 
       - name: Provision infrastructure
         run: |
-          RG="${{ secrets.AZURE_RESOURCE_GROUP }}"
-          LOCATION="${{ vars.AZURE_LOCATION }}"
-          SA="${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}"
-          FUNCAPP="${{ secrets.AZURE_FUNCTIONAPP_NAME }}"
-
-          az group create --name "$RG" --location "$LOCATION"
+          az group create --name "$AZURE_RESOURCE_GROUP" --location "$AZURE_LOCATION"
 
           az storage account create \
-            --name "$SA" \
-            --resource-group "$RG" \
-            --location "$LOCATION" \
+            --name "$AZURE_STORAGE_ACCOUNT_NAME" \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --location "$AZURE_LOCATION" \
             --sku Standard_LRS \
             --allow-blob-public-access false
 
-          if ! az functionapp show --name "$FUNCAPP" --resource-group "$RG" &>/dev/null; then
+          if ! az functionapp show --name "$AZURE_FUNCTIONAPP_NAME" --resource-group "$AZURE_RESOURCE_GROUP" &>/dev/null; then
             az functionapp create \
-              --name "$FUNCAPP" \
-              --resource-group "$RG" \
-              --storage-account "$SA" \
-              --consumption-plan-location "$LOCATION" \
+              --name "$AZURE_FUNCTIONAPP_NAME" \
+              --resource-group "$AZURE_RESOURCE_GROUP" \
+              --storage-account "$AZURE_STORAGE_ACCOUNT_NAME" \
+              --consumption-plan-location "$AZURE_LOCATION" \
               --runtime python \
               --runtime-version 3.13 \
               --functions-version 4 \
               --assign-identity
           else
-            az functionapp identity assign --name "$FUNCAPP" --resource-group "$RG"
+            az functionapp identity assign --name "$AZURE_FUNCTIONAPP_NAME" --resource-group "$AZURE_RESOURCE_GROUP"
           fi
 
-          PRINCIPAL_ID=$(az functionapp identity show --name "$FUNCAPP" --resource-group "$RG" --query principalId -o tsv)
-          SA_ID=$(az storage account show --name "$SA" --resource-group "$RG" --query id -o tsv)
+          PRINCIPAL_ID=$(az functionapp identity show --name "$AZURE_FUNCTIONAPP_NAME" --resource-group "$AZURE_RESOURCE_GROUP" --query principalId -o tsv)
+          SA_ID=$(az storage account show --name "$AZURE_STORAGE_ACCOUNT_NAME" --resource-group "$AZURE_RESOURCE_GROUP" --query id -o tsv)
 
           az role assignment create \
             --assignee "$PRINCIPAL_ID" \
@@ -65,17 +66,17 @@ jobs:
       - name: Set function app settings
         run: |
           az functionapp config appsettings set \
-            --name ${{ secrets.AZURE_FUNCTIONAPP_NAME }} \
-            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --name "$AZURE_FUNCTIONAPP_NAME" \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
             --settings \
               TELEGRAM_BOT_TOKEN="${{ secrets.TELEGRAM_BOT_TOKEN }}" \
               TELEGRAM_CHAT_ID="${{ secrets.TELEGRAM_CHAT_ID }}" \
-              AZURE_TABLES_ENDPOINT="https://${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}.table.core.windows.net" \
+              AZURE_TABLES_ENDPOINT="https://${AZURE_STORAGE_ACCOUNT_NAME}.table.core.windows.net" \
               WEBSITE_TIME_ZONE="UTC"
 
       - uses: azure/functions-action@v1
         with:
-          app-name: ${{ secrets.AZURE_FUNCTIONAPP_NAME }}
+          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
           package: .
           scm-do-build-during-deployment: true
           enable-oryx-build: true
