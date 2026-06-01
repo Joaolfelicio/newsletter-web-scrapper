@@ -1,0 +1,42 @@
+name: Deploy to Azure Functions
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt --target .python_packages/lib/site-packages
+
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set function app settings
+        run: |
+          az functionapp config appsettings set \
+            --name ${{ secrets.AZURE_FUNCTIONAPP_NAME }} \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --settings \
+              TELEGRAM_BOT_TOKEN="${{ secrets.TELEGRAM_BOT_TOKEN }}" \
+              TELEGRAM_CHAT_ID="${{ secrets.TELEGRAM_CHAT_ID }}" \
+              AZURE_TABLES_ENDPOINT="https://${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}.table.core.windows.net" \
+              WEBSITE_TIME_ZONE="UTC"
+
+      - uses: azure/functions-action@v1
+        with:
+          app-name: ${{ secrets.AZURE_FUNCTIONAPP_NAME }}
+          package: .
+          scm-do-build-during-deployment: true
+          enable-oryx-build: true

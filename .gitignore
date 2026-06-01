@@ -1,0 +1,14 @@
+# Claude Code
+.claude/
+
+# Azure Functions
+local.settings.json
+.python_packages/
+__pycache__/
+*.pyc
+.env
+
+# Python
+.venv/
+*.egg-info/
+dist/
