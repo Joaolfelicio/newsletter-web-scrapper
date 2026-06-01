@@ -46,6 +46,7 @@ jobs:
               --resource-group "$AZURE_RESOURCE_GROUP" \
               --storage-account "$AZURE_STORAGE_ACCOUNT_NAME" \
               --consumption-plan-location "$AZURE_LOCATION" \
+              --os-type linux \
               --runtime python \
               --runtime-version 3.13 \
               --functions-version 4 \
