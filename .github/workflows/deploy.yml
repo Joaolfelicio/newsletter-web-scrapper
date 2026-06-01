@@ -69,6 +69,19 @@ jobs:
             --scope "$SA_ID" \
             2>/dev/null || true
 
+          if ! az consumption budget show --budget-name newsletter-budget --resource-group "$AZURE_RESOURCE_GROUP" &>/dev/null; then
+            az consumption budget create \
+              --budget-name newsletter-budget \
+              --amount 5 \
+              --category Cost \
+              --time-grain Monthly \
+              --start-date "$(date +%Y-%m-01)" \
+              --end-date "2030-12-31" \
+              --resource-group "$AZURE_RESOURCE_GROUP" \
+              --threshold 100 \
+              --contact-emails "joaolfelicio@gmail.com"
+          fi
+
       - name: Set function app settings
         run: |
           az functionapp config appsettings set \
