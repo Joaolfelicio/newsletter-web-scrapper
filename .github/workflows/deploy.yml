@@ -23,6 +23,45 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      - name: Provision infrastructure
+        run: |
+          RG="${{ secrets.AZURE_RESOURCE_GROUP }}"
+          LOCATION="${{ vars.AZURE_LOCATION }}"
+          SA="${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}"
+          FUNCAPP="${{ secrets.AZURE_FUNCTIONAPP_NAME }}"
+
+          az group create --name "$RG" --location "$LOCATION"
+
+          az storage account create \
+            --name "$SA" \
+            --resource-group "$RG" \
+            --location "$LOCATION" \
+            --sku Standard_LRS \
+            --allow-blob-public-access false
+
+          if ! az functionapp show --name "$FUNCAPP" --resource-group "$RG" &>/dev/null; then
+            az functionapp create \
+              --name "$FUNCAPP" \
+              --resource-group "$RG" \
+              --storage-account "$SA" \
+              --consumption-plan-location "$LOCATION" \
+              --runtime python \
+              --runtime-version 3.13 \
+              --functions-version 4 \
+              --assign-identity
+          else
+            az functionapp identity assign --name "$FUNCAPP" --resource-group "$RG"
+          fi
+
+          PRINCIPAL_ID=$(az functionapp identity show --name "$FUNCAPP" --resource-group "$RG" --query principalId -o tsv)
+          SA_ID=$(az storage account show --name "$SA" --resource-group "$RG" --query id -o tsv)
+
+          az role assignment create \
+            --assignee "$PRINCIPAL_ID" \
+            --role "Storage Table Data Contributor" \
+            --scope "$SA_ID" \
+            2>/dev/null || true
+
       - name: Set function app settings
         run: |
           az functionapp config appsettings set \
