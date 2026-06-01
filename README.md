@@ -19,13 +19,12 @@ For sites without RSS, subclass `BaseFeedChecker` in `src/checkers/` and impleme
 
 ### 1. Telegram bot
 
-Bot username: `@jfnewsltterwebscrapperbot`
-
-1. Get the **bot token**: message `@BotFather` → `/mybot` → select the bot → API Token
-2. Start a conversation with `@jfnewsltterwebscrapperbot` (or add it to a group)
-3. Get your **chat ID**:
+1. Get the **bot token**: message `@BotFather` → `/mybots` → select the bot → API Token
+2. Start a conversation with the bot (or add it to a group)
+3. Get your **chat ID** (numeric):
+   - Send a message to the bot first
    - Visit `https://api.telegram.org/bot<TOKEN>/getUpdates` in a browser
-   - Send a message to the bot first, then refresh — look for `"chat":{"id":...}`
+   - Look for `"chat":{"id":<number>}` — that number is `TELEGRAM_CHAT_ID`
 
 ### 2. GitHub secrets
 
