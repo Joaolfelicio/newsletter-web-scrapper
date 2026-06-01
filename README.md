@@ -1,4 +1,4 @@
-# faros-api-newsletter
+# newsletter-web-scrapper
 
 Azure Function that monitors blog RSS feeds and sends Telegram notifications when new articles are published. Runs hourly. Idempotent — uses Azure Storage Tables to track seen articles across runs.
 
